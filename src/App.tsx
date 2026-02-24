@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
   Trash2, 
-  Download, 
+  Printer, 
   Save, 
   RotateCcw, 
   FileText, 
@@ -16,12 +16,14 @@ import {
   Database,
   Calendar,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Eye,
+  X,
+  Copy,
+  Check
 } from 'lucide-react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -114,10 +116,19 @@ const RichTextEditor = ({ value, onChange, id }: { value: string; onChange: (con
 
 export default function App() {
   const [data, setData] = useState<AppData>(INITIAL_DATA);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const pdfTemplateRef = useRef<HTMLDivElement>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const printTemplateRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
-  // --- Handlers ---
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Helper to extract digits from JIRA number
+  const jiraDigits = data.jiraNumber.replace(/\D/g, '');
+  const sqlQuery = `select * from psoprdzfn where oprid='${jiraDigits || 'XXXX'}';`;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setData(prev => ({ ...prev, [name]: value }));
@@ -180,39 +191,13 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const generatePDF = async () => {
+  const handlePrint = () => {
     if (!data.jiraNumber || !data.jiraName) {
       alert('Veuillez remplir au moins le numéro et le nom de la JIRA.');
       return;
     }
-
-    setIsGenerating(true);
-    
-    // Give React a moment to render the hidden template
-    setTimeout(async () => {
-      const element = pdfTemplateRef.current;
-      const opt = {
-        margin: 0,
-        filename: `Cahier_Tests_${data.jiraNumber}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] as const }
-      };
-
-      try {
-        await html2pdf().set(opt).from(element).save();
-      } catch (error) {
-        console.error('PDF Generation Error:', error);
-        alert('Erreur lors de la génération du PDF.');
-      } finally {
-        setIsGenerating(false);
-      }
-    }, 500);
+    window.print();
   };
-
-  // Helper to extract digits from JIRA number
-  const jiraDigits = data.jiraNumber.replace(/\D/g, '');
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
@@ -239,11 +224,16 @@ export default function App() {
               <Save className="w-4 h-4" /> Sauvegarder
             </button>
             <button 
-              onClick={generatePDF}
-              disabled={isGenerating}
-              className="flex items-center gap-2 px-6 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setIsPreviewOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              {isGenerating ? 'Génération...' : <><Download className="w-4 h-4" /> Télécharger PDF</>}
+              <Eye className="w-4 h-4" /> Aperçu
+            </button>
+            <button 
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-6 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all"
+            >
+              <Printer className="w-4 h-4" /> Imprimer
             </button>
           </div>
         </div>
@@ -303,6 +293,24 @@ export default function App() {
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                   />
                 </div>
+              </div>
+
+              {/* SQL Query Auto-gen Zone */}
+              <div className="pt-4 border-t border-slate-100">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Requête SQL Developer</label>
+                <div className="relative group">
+                  <div className="w-full bg-slate-900 text-indigo-300 p-3 rounded-xl font-mono text-[10px] sm:text-xs break-all pr-10 border border-slate-800 shadow-inner">
+                    {sqlQuery}
+                  </div>
+                  <button 
+                    onClick={() => copyToClipboard(sqlQuery)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-sm"
+                    title="Copier la requête"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2 italic">Générée automatiquement à partir du numéro JIRA</p>
               </div>
             </div>
           </section>
@@ -448,94 +456,134 @@ export default function App() {
         </div>
       </main>
 
-      {/* --- HIDDEN PDF TEMPLATE --- */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <div ref={pdfTemplateRef} className="pdf-container">
-          {/* Page 1: Page de Garde */}
-          <div className="pdf-page">
-            <div className="pdf-header-band">
-              <div className="pdf-header-left">
-                {data.jiraNumber || 'JIRA-XXX'}
-              </div>
-              <div className="pdf-header-right">
-                {data.jiraName || 'NOM DE LA JIRA'}
-              </div>
-            </div>
-            
-            <div className="pdf-sub-header">
-              [{data.type}] - [{new Date(data.date).toLocaleDateString('fr-FR')}]
-            </div>
-
-            <div className="flex flex-col items-center justify-center" style={{ height: '200mm' }}>
-              {/* Placeholder for icon.png - using a generic icon if not found */}
-              <div className="w-48 h-48 bg-slate-100 rounded-full flex items-center justify-center border-4 border-indigo-600">
-                <FileText className="w-24 h-24 text-indigo-600" />
-              </div>
-              <p className="mt-8 text-2xl font-bold text-slate-400 uppercase tracking-widest">Cahier de Tests</p>
-            </div>
-
-            <div className="pdf-footer">
-              <div>{data.jiraNumber} / {data.jiraName}</div>
-              <div className="html2pdf__page-number"></div>
-            </div>
-          </div>
-
-          {/* Page 2 and following */}
-          <div className="pdf-page">
-            <div className="pdf-content">
-              <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Détails Techniques</h2>
-              
-              <div className="mb-8">
-                <p className="font-semibold mb-2">Requête SQL de vérification :</p>
-                <div className="sql-block">
-                  select * from psoprdzfn where oprid='{jiraDigits || 'XXXX'}';
-                </div>
-              </div>
-
-              {data.localImage && (
-                <div className="mb-8">
-                  <p className="font-semibold mb-2">Capture d'écran initiale :</p>
-                  <img src={data.localImage} alt="Local" className="pdf-image-main" />
-                </div>
-              )}
-
-              <div className="mb-8">
-                <h3 className="text-lg font-bold mb-2">Environnement de test</h3>
-                <p className="bg-slate-100 p-3 rounded border border-slate-300 inline-block font-mono">
-                  {data.environment}
-                </p>
-              </div>
-
-              <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-slate-800 pb-2">Déroulement des Tests</h2>
-              
-              {data.steps.map((step, idx) => (
-                <div key={step.id} className="mb-8" style={{ pageBreakInside: 'avoid' }}>
-                  <div className="step-title">
-                    Étape {idx + 1} : {step.title}
-                  </div>
-                  <div 
-                    className="ql-editor" 
-                    style={{ padding: 0, minHeight: 'auto' }}
-                    dangerouslySetInnerHTML={{ __html: step.content }} 
-                  />
-                </div>
-              ))}
-
-              <div className="mt-12" style={{ pageBreakInside: 'avoid' }}>
-                <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Conclusion du Test</h2>
-                <div className={data.conclusion === 'OK' ? 'conclusion-ok' : 'conclusion-ko'}>
-                  BON POUR PROD {data.conclusion}
-                </div>
+      {/* --- PREVIEW MODAL --- */}
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-100 w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="bg-white px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Eye className="w-5 h-5 text-indigo-600" /> Aperçu avant impression (Format A4)
+              </h3>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all"
+                >
+                  <Printer className="w-4 h-4" /> Imprimer maintenant
+                </button>
+                <button 
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
               </div>
             </div>
-
-            <div className="pdf-footer">
-              <div>{data.jiraNumber} / {data.jiraName}</div>
-              <div className="html2pdf__page-number"></div>
+            <div className="flex-1 overflow-y-auto p-8 bg-slate-200/50">
+              <div className="print-container shadow-2xl">
+                <PrintContent data={data} jiraDigits={jiraDigits} />
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* --- HIDDEN PRINT TEMPLATE --- */}
+      <div className="hidden print:block">
+        <div ref={printTemplateRef} className="print-container">
+          <PrintContent data={data} jiraDigits={jiraDigits} />
+        </div>
       </div>
     </div>
+  );
+}
+
+// --- Sub-component for the actual document content ---
+function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string }) {
+  return (
+    <>
+      {/* Page 1: Page de Garde */}
+      <div className="pdf-page">
+        <div className="pdf-header-band">
+          <div className="pdf-header-left">
+            {data.jiraNumber || 'JIRA-XXX'}
+          </div>
+          <div className="pdf-header-right">
+            {data.jiraName || 'NOM DE LA JIRA'}
+          </div>
+        </div>
+        
+        <div className="pdf-sub-header">
+          [{data.type}] - [{new Date(data.date).toLocaleDateString('fr-FR')}]
+        </div>
+
+        <div className="flex flex-col items-center justify-center" style={{ height: '200mm' }}>
+          <div className="w-48 h-48 bg-slate-100 rounded-full flex items-center justify-center border-4 border-indigo-600">
+            <FileText className="w-24 h-24 text-indigo-600" />
+          </div>
+          <p className="mt-8 text-2xl font-bold text-slate-400 uppercase tracking-widest">Cahier de Tests</p>
+        </div>
+
+        <div className="pdf-footer">
+          <div>{data.jiraNumber} / {data.jiraName}</div>
+          <div>Page 1</div>
+        </div>
+      </div>
+
+      {/* Page 2 and following */}
+      <div className="pdf-page">
+        <div className="pdf-content">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Détails Techniques</h2>
+          
+          <div className="mb-8">
+            <p className="font-semibold mb-2">Requête SQL de vérification :</p>
+            <div className="sql-block">
+              select * from psoprdzfn where oprid='{jiraDigits || 'XXXX'}';
+            </div>
+          </div>
+
+          {data.localImage && (
+            <div className="mb-8">
+              <p className="font-semibold mb-2">Capture d'écran initiale :</p>
+              <img src={data.localImage} alt="Local" className="pdf-image-main" />
+            </div>
+          )}
+
+          <div className="mb-8">
+            <h3 className="text-lg font-bold mb-2">Environnement de test</h3>
+            <p className="bg-slate-100 p-3 rounded border border-slate-300 inline-block font-mono">
+              {data.environment}
+            </p>
+          </div>
+
+          <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-slate-800 pb-2">Déroulement des Tests</h2>
+          
+          {data.steps.map((step, idx) => (
+            <div key={step.id} className="mb-8" style={{ pageBreakInside: 'avoid' }}>
+              <div className="step-title">
+                Étape {idx + 1} : {step.title}
+              </div>
+              <div 
+                className="ql-editor" 
+                style={{ padding: 0, minHeight: 'auto' }}
+                dangerouslySetInnerHTML={{ __html: step.content }} 
+              />
+            </div>
+          ))}
+
+          <div className="mt-12" style={{ pageBreakInside: 'avoid' }}>
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Conclusion du Test</h2>
+            <div className={data.conclusion === 'OK' ? 'conclusion-ok' : 'conclusion-ko'}>
+              BON POUR PROD {data.conclusion}
+            </div>
+          </div>
+        </div>
+
+        <div className="pdf-footer">
+          <div>{data.jiraNumber} / {data.jiraName}</div>
+          <div>Page 2+</div>
+        </div>
+      </div>
+    </>
   );
 }

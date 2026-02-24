@@ -18,23 +18,52 @@
   margin: 10px 0;
 }
 
-/* Styles pour le template PDF */
-.pdf-container {
+/* Styles pour le template d'impression / aperçu */
+.print-container {
   width: 210mm;
   background: white;
   margin: 0 auto;
   color: black;
   font-family: 'Arial', sans-serif;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-container, .print-container * {
+    visibility: visible;
+  }
+  
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
 }
 
 .pdf-page {
   width: 210mm;
-  height: 297mm;
+  min-height: 297mm;
   padding: 0;
   position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
+  background: white;
   page-break-after: always;
+  box-sizing: border-box;
 }
 
 .pdf-header-band {
