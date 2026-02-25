@@ -558,7 +558,7 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
       {/* Page 2 and following */}
       <div className="pdf-page">
         <div className="pdf-content">
-          <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Détails Techniques</h2>
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Détails Techniques</h2>
           
           <div className="mb-8">
             <p className="font-semibold mb-2">Requête SQL de vérification :</p>
