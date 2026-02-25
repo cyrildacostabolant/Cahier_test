@@ -388,7 +388,7 @@ export default function App() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Image Page 2</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Capture exécution requête</label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-indigo-400 transition-colors cursor-pointer relative group">
                   <input 
                     type="file" 
