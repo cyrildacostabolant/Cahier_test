@@ -62,6 +62,13 @@ const INITIAL_DATA: AppData = {
   steps: [{ id: crypto.randomUUID(), title: 'Étape 1', content: '' }]
 };
 
+const COLORS = [
+  '#000000', '#444444', '#666666', '#999999',
+  '#cccccc', '#eeeeee', '#f3f6f4', '#ffffff',
+  '#ff0000', '#ff9900', '#ffff00', '#00ff00',
+  '#00ffff', '#0000ff', '#9900ff', '#ff00ff'
+];
+
 // --- Component: Rich Text Editor ---
 const RichTextEditor = ({ value, onChange, id }: { value: string; onChange: (content: string) => void; id: string }) => {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -76,6 +83,7 @@ const RichTextEditor = ({ value, onChange, id }: { value: string; onChange: (con
           toolbar: [
             [{ header: [1, 2, false] }],
             ['bold', 'italic', 'underline', 'strike'],
+            [{ color: COLORS }, { background: COLORS }],
             ['blockquote', 'code-block'],
             [{ list: 'ordered' }, { list: 'bullet' }],
             ['link', 'image'],
@@ -113,7 +121,7 @@ const RichTextEditor = ({ value, onChange, id }: { value: string; onChange: (con
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-      <div ref={editorRef} style={{ height: '200px' }} />
+      <div ref={editorRef} style={{ minHeight: '200px' }} />
     </div>
   );
 };
@@ -215,7 +223,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20 print:bg-white print:pb-0">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm print:hidden">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 p-2 rounded-lg">
               <FileText className="text-white w-6 h-6" />
@@ -258,7 +266,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8 print:hidden">
+      <main className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8 print:hidden">
         {/* Left Column: Main Info */}
         <div className="lg:col-span-1 space-y-6">
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -478,7 +486,7 @@ export default function App() {
       {/* --- PREVIEW MODAL --- */}
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
-          <div className="bg-slate-100 w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <div className="bg-slate-100 w-full max-w-7xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="bg-white px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <Eye className="w-5 h-5 text-indigo-600" /> Aperçu avant impression (Format A4)
