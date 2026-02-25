@@ -560,6 +560,13 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
 
       {/* Page 2 and following */}
       <table className="w-full">
+        <thead>
+          <tr>
+            <td>
+              <div style={{ height: '15mm' }}></div>
+            </td>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td>
