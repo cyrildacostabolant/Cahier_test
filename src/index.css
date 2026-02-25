@@ -102,12 +102,13 @@
   height: 10mm;
   width: 100%;
   border: 1px solid #000;
+  border-top: none;
+  background-color: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 14pt;
-  margin-top: 2mm;
 }
 
 .pdf-footer {

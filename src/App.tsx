@@ -128,7 +128,7 @@ export default function App() {
 
   // Helper to extract digits from JIRA number
   const jiraDigits = data.jiraNumber.replace(/\D/g, '');
-  const sqlQuery = `select * from psoprdzfn where oprid='${jiraDigits || 'XXXX'}';`;
+  const sqlQuery = `select * from ps_s1_scripts_tbl where s1_script_name like '%${jiraDigits || 'XXXX'}J%';`;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setData(prev => ({ ...prev, [name]: value }));
@@ -518,9 +518,15 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
         </div>
 
         <div className="flex flex-col items-center justify-center" style={{ height: '200mm' }}>
-          <div className="w-48 h-48 bg-slate-100 rounded-full flex items-center justify-center border-4 border-indigo-600">
-            <FileText className="w-24 h-24 text-indigo-600" />
-          </div>
+          <img 
+            src="/icon.png" 
+            alt="Logo Cahier de Tests" 
+            className="w-48 h-48 object-contain"
+            onError={(e) => {
+              // Fallback visuel si l'image n'est pas trouvée dans /public
+              e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%234f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>';
+            }}
+          />
           <p className="mt-8 text-2xl font-bold text-slate-400 uppercase tracking-widest">Cahier de Tests</p>
         </div>
 
@@ -538,7 +544,7 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
           <div className="mb-8">
             <p className="font-semibold mb-2">Requête SQL de vérification :</p>
             <div className="sql-block">
-              select * from psoprdzfn where oprid='{jiraDigits || 'XXXX'}';
+              select * from ps_s1_scripts_tbl where s1_script_name like '%{jiraDigits || 'XXXX'}J%';
             </div>
           </div>
 
