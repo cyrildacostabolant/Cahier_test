@@ -1,0 +1,17 @@
+{
+  "name": "Cahier de recette ERP",
+  "short_name": "Cahier ERP",
+  "description": "Outil de création de cahiers de recette",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/notebook.svg",
+      "type": "image/svg+xml",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
