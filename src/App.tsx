@@ -166,19 +166,27 @@ export default function App() {
     }));
   };
 
-  const saveToLocalStorage = () => {
-    localStorage.setItem('erp_test_notebook_data', JSON.stringify(data));
-    alert('Données sauvegardées localement !');
-  };
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const restoreFromLocalStorage = () => {
-    const saved = localStorage.getItem('erp_test_notebook_data');
-    if (saved) {
-      setData(JSON.parse(saved));
-      alert('Données restaurées !');
-    } else {
-      alert('Aucune sauvegarde trouvée.');
-    }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (json && typeof json === 'object') {
+          setData(json);
+          alert('Données restaurées avec succès !');
+        }
+      } catch (error) {
+        alert('Erreur lors de la lecture du fichier de sauvegarde. Assurez-vous qu\'il s\'agit d\'un fichier JSON valide.');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so the same file can be loaded again if needed
+    e.target.value = '';
   };
 
   const downloadJSON = () => {
@@ -186,7 +194,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `test-notebook-${data.jiraNumber || 'export'}.json`;
+    a.download = `cahier-recette-${data.jiraNumber || 'export'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -211,14 +219,21 @@ export default function App() {
             <h1 className="text-xl font-bold tracking-tight text-slate-800">Cahier de Tests ERP</h1>
           </div>
           <div className="flex items-center gap-3">
+            <input 
+              type="file" 
+              accept=".json" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+            />
             <button 
-              onClick={restoreFromLocalStorage}
+              onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
               <RotateCcw className="w-4 h-4" /> Restaurer
             </button>
             <button 
-              onClick={saveToLocalStorage}
+              onClick={downloadJSON}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
               <Save className="w-4 h-4" /> Sauvegarder
