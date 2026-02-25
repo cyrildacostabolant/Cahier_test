@@ -569,7 +569,7 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
 
           {data.localImage && (
             <div className="mb-8">
-              <p className="font-semibold mb-2">Capture d'écran initiale :</p>
+              <p className="font-semibold mb-2">Exécution SQL :</p>
               <img src={data.localImage} alt="Local" className="pdf-image-main" />
             </div>
           )}

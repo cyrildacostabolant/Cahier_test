@@ -67,7 +67,7 @@
   height: 30mm;
   display: flex;
   width: 100%;
-  border: 2px solid #000;
+  border: 1px solid #000;
   box-sizing: border-box;
 }
 
@@ -79,7 +79,7 @@
   justify-content: center;
   font-weight: bold;
   font-size: 18pt;
-  border-right: 2px solid #000;
+  border-right: 1px solid #000;
 }
 
 .pdf-header-right {
@@ -98,7 +98,7 @@
 .pdf-sub-header {
   height: 10mm;
   width: 100%;
-  border: 2px solid #000;
+  border: 1px solid #000;
   border-top: none;
   background-color: #e5e7eb;
   display: flex;
