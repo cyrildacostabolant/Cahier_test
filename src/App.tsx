@@ -499,8 +499,12 @@ export default function App() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-8 bg-slate-200/50">
-              <div className="print-container shadow-2xl">
+              <div className="print-container shadow-2xl relative">
                 <PrintContent data={data} jiraDigits={jiraDigits} />
+                <div className="pdf-footer-fixed">
+                  <div>{data.jiraNumber} / {data.jiraName}</div>
+                  <div>Cahier de recette</div>
+                </div>
               </div>
             </div>
           </div>
@@ -509,8 +513,12 @@ export default function App() {
 
       {/* --- HIDDEN PRINT TEMPLATE --- */}
       <div className="hidden print:block">
-        <div ref={printTemplateRef} className="print-container">
+        <div ref={printTemplateRef} className="print-container relative">
           <PrintContent data={data} jiraDigits={jiraDigits} />
+          <div className="pdf-footer-fixed">
+            <div>{data.jiraNumber} / {data.jiraName}</div>
+            <div>Cahier de recette</div>
+          </div>
         </div>
       </div>
     </div>
@@ -548,67 +556,70 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
           />
           <p className="mt-8 text-2xl font-bold text-slate-400 uppercase tracking-widest">Cahier de Recette</p>
         </div>
-
-        <div className="pdf-footer">
-          <div>{data.jiraNumber} / {data.jiraName}</div>
-          <div>Page 1</div>
-        </div>
       </div>
 
       {/* Page 2 and following */}
-      <div className="pdf-page">
-        <div className="pdf-content">
-          <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Détails Techniques</h2>
-          
-          <div className="mb-8">
-            <p className="font-semibold mb-2">Requête SQL de vérification :</p>
-            <div className="sql-block">
-              select * from ps_s1_scripts_tbl where s1_script_name like '%{jiraDigits || 'XXXX'}J%';
-            </div>
-          </div>
+      <table className="w-full">
+        <tbody>
+          <tr>
+            <td>
+              <div className="pdf-content">
+                <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Détails Techniques</h2>
+                
+                <div className="mb-8">
+                  <p className="font-semibold mb-2">Requête SQL de vérification :</p>
+                  <div className="sql-block">
+                    select * from ps_s1_scripts_tbl where s1_script_name like '%{jiraDigits || 'XXXX'}J%';
+                  </div>
+                </div>
 
-          {data.localImage && (
-            <div className="mb-8">
-              <p className="font-semibold mb-2">Exécution SQL :</p>
-              <img src={data.localImage} alt="Local" className="pdf-image-main" />
-            </div>
-          )}
+                {data.localImage && (
+                  <div className="mb-8">
+                    <p className="font-semibold mb-2">Exécution SQL :</p>
+                    <img src={data.localImage} alt="Local" className="pdf-image-main" />
+                  </div>
+                )}
 
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-2">Environnement de test</h3>
-            <p className="bg-slate-100 p-3 rounded border border-slate-300 inline-block font-mono">
-              {data.environment}
-            </p>
-          </div>
+                <div className="mb-8">
+                  <h3 className="text-lg font-bold mb-2">Environnement de test</h3>
+                  <p className="bg-slate-100 p-3 rounded border border-slate-300 inline-block font-mono">
+                    {data.environment}
+                  </p>
+                </div>
 
-          <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-red-900 text-red-900 pb-2">Déroulement des Tests</h2>
-          
-          {data.steps.map((step, idx) => (
-            <div key={step.id} className="mb-8" style={{ pageBreakInside: 'avoid' }}>
-              <div className="step-title">
-                Étape {idx + 1} : {step.title}
+                <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-red-900 text-red-900 pb-2">Déroulement des Tests</h2>
+                
+                {data.steps.map((step, idx) => (
+                  <div key={step.id} className="mb-8" style={{ pageBreakInside: 'avoid' }}>
+                    <div className="step-title">
+                      Étape {idx + 1} : {step.title}
+                    </div>
+                    <div 
+                      className="ql-editor" 
+                      style={{ padding: 0, minHeight: 'auto' }}
+                      dangerouslySetInnerHTML={{ __html: step.content }} 
+                    />
+                  </div>
+                ))}
+
+                <div className="mt-12" style={{ pageBreakInside: 'avoid' }}>
+                  <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Conclusion du Test</h2>
+                  <div className={data.conclusion === 'OK' ? 'conclusion-ok' : 'conclusion-ko'}>
+                    BON POUR PROD {data.conclusion}
+                  </div>
+                </div>
               </div>
-              <div 
-                className="ql-editor" 
-                style={{ padding: 0, minHeight: 'auto' }}
-                dangerouslySetInnerHTML={{ __html: step.content }} 
-              />
-            </div>
-          ))}
-
-          <div className="mt-12" style={{ pageBreakInside: 'avoid' }}>
-            <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Conclusion du Test</h2>
-            <div className={data.conclusion === 'OK' ? 'conclusion-ok' : 'conclusion-ko'}>
-              BON POUR PROD {data.conclusion}
-            </div>
-          </div>
-        </div>
-
-        <div className="pdf-footer">
-          <div>{data.jiraNumber} / {data.jiraName}</div>
-          <div>Page 2+</div>
-        </div>
-      </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <div style={{ height: '15mm' }}></div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </>
   );
 }

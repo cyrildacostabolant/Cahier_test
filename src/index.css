@@ -41,7 +41,7 @@
   }
   
   .print-container {
-    width: 210mm;
+    width: 100%;
     box-shadow: none;
     margin: 0;
     -webkit-print-color-adjust: exact !important;
@@ -109,8 +109,8 @@
   box-sizing: border-box;
 }
 
-.pdf-footer {
-  position: absolute;
+.pdf-footer-fixed {
+  position: sticky;
   bottom: 0;
   left: 0;
   width: 100%;
@@ -122,6 +122,18 @@
   padding: 0 15mm;
   font-size: 9pt;
   color: #666;
+  background: white;
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+@media print {
+  .pdf-footer-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
 }
 
 .pdf-content {
