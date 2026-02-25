@@ -162,7 +162,8 @@
 .step-title {
   font-size: 14pt;
   font-weight: bold;
-  border-bottom: 1px solid #000;
+  color: #00008b;
+  border-bottom: 2px solid #00008b;
   margin-top: 20px;
   margin-bottom: 10px;
   padding-bottom: 5px;

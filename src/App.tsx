@@ -24,7 +24,10 @@ import {
 } from 'lucide-react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
+import BlotFormatter from 'quill-blot-formatter';
 import { clsx, type ClassValue } from 'clsx';
+
+Quill.register('modules/blotFormatter', BlotFormatter);
 import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs: ClassValue[]) {
@@ -69,6 +72,7 @@ const RichTextEditor = ({ value, onChange, id }: { value: string; onChange: (con
       quillRef.current = new Quill(editorRef.current, {
         theme: 'snow',
         modules: {
+          blotFormatter: {},
           toolbar: [
             [{ header: [1, 2, false] }],
             ['bold', 'italic', 'underline', 'strike'],
@@ -577,7 +581,7 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
             </p>
           </div>
 
-          <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-slate-800 pb-2">Déroulement des Tests</h2>
+          <h2 className="text-xl font-bold mt-10 mb-4 border-b-2 border-red-900 text-red-900 pb-2">Déroulement des Tests</h2>
           
           {data.steps.map((step, idx) => (
             <div key={step.id} className="mb-8" style={{ pageBreakInside: 'avoid' }}>
@@ -593,7 +597,7 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
           ))}
 
           <div className="mt-12" style={{ pageBreakInside: 'avoid' }}>
-            <h2 className="text-xl font-bold mb-4 border-b-2 border-slate-800 pb-2">Conclusion du Test</h2>
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Conclusion du Test</h2>
             <div className={data.conclusion === 'OK' ? 'conclusion-ok' : 'conclusion-ko'}>
               BON POUR PROD {data.conclusion}
             </div>
