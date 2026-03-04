@@ -49,6 +49,8 @@ interface AppData {
   conclusion: 'OK' | 'KO';
   localImage: string | null;
   steps: TestStep[];
+  showSqlQuery: boolean;
+  sqlQueryType: 'data' | 'app';
 }
 
 const INITIAL_DATA: AppData = {
@@ -59,7 +61,9 @@ const INITIAL_DATA: AppData = {
   environment: 'FRECMCOR',
   conclusion: 'OK',
   localImage: null,
-  steps: [{ id: crypto.randomUUID(), title: 'Étape 1', content: '' }]
+  steps: [{ id: crypto.randomUUID(), title: 'Étape 1', content: '' }],
+  showSqlQuery: true,
+  sqlQueryType: 'data'
 };
 
 const COLORS = [
@@ -140,10 +144,17 @@ export default function App() {
 
   // Helper to extract digits from JIRA number
   const jiraDigits = data.jiraNumber.replace(/\D/g, '');
-  const sqlQuery = `select * from ps_s1_scripts_tbl where s1_script_name like '%${jiraDigits || 'XXXX'}J%';`;
+  const sqlQuery = data.sqlQueryType === 'data' 
+    ? `select * from ps_s1_scripts_tbl where s1_script_name like '%${jiraDigits || 'XXXX'}J%';`
+    : `select * from psprojectdefn where projectname like '%${jiraDigits || 'XXXX'}J%';`;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target as HTMLInputElement;
+    if (type === 'checkbox') {
+      setData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else {
+      setData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -323,21 +334,51 @@ export default function App() {
               </div>
 
               {/* SQL Query Auto-gen Zone */}
-              <div className="pt-4 border-t border-slate-100">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Requête SQL Developer</label>
-                <div className="relative group">
-                  <div className="w-full bg-slate-900 text-indigo-300 p-3 rounded-xl font-mono text-[10px] sm:text-xs break-all pr-10 border border-slate-800 shadow-inner">
-                    {sqlQuery}
-                  </div>
-                  <button 
-                    onClick={() => copyToClipboard(sqlQuery)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-sm"
-                    title="Copier la requête"
-                  >
-                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  </button>
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input 
+                      type="checkbox"
+                      name="showSqlQuery"
+                      checked={data.showSqlQuery}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-slate-700 transition-colors">
+                      Requête SQL Developer
+                    </span>
+                  </label>
+                  
+                  {data.showSqlQuery && (
+                    <select
+                      name="sqlQueryType"
+                      value={data.sqlQueryType}
+                      onChange={handleInputChange}
+                      className="text-[10px] font-medium bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="data">Modif. Données</option>
+                      <option value="app">Modif. Applicative</option>
+                    </select>
+                  )}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2 italic">Générée automatiquement à partir du numéro JIRA</p>
+
+                {data.showSqlQuery && (
+                  <>
+                    <div className="relative group">
+                      <div className="w-full bg-slate-900 text-indigo-300 p-3 rounded-xl font-mono text-[10px] sm:text-xs break-all pr-10 border border-slate-800 shadow-inner">
+                        {sqlQuery}
+                      </div>
+                      <button 
+                        onClick={() => copyToClipboard(sqlQuery)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-sm"
+                        title="Copier la requête"
+                      >
+                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2 italic">Générée automatiquement à partir du numéro JIRA</p>
+                  </>
+                )}
               </div>
             </div>
           </section>
@@ -581,12 +622,17 @@ function PrintContent({ data, jiraDigits }: { data: AppData; jiraDigits: string 
               <div className="pdf-content">
                 <h2 className="text-xl font-bold mb-4 border-b-2 border-red-900 text-red-900 pb-2">Détails Techniques</h2>
                 
-                <div className="mb-8">
-                  <p className="font-semibold mb-2">Requête SQL de vérification :</p>
-                  <div className="sql-block">
-                    select * from ps_s1_scripts_tbl where s1_script_name like '%{jiraDigits || 'XXXX'}J%';
+                {data.showSqlQuery && (
+                  <div className="mb-8">
+                    <p className="font-semibold mb-2">Requête SQL de vérification :</p>
+                    <div className="sql-block">
+                      {data.sqlQueryType === 'data' 
+                        ? `select * from ps_s1_scripts_tbl where s1_script_name like '%${jiraDigits || 'XXXX'}J%';`
+                        : `select * from psprojectdefn where projectname like '%${jiraDigits || 'XXXX'}J%';`
+                      }
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {data.localImage && (
                   <div className="mb-8">
